@@ -501,6 +501,7 @@ const DOWNLOADS_KEY = "serenidad_downloads";
 const FAVORITES_KEY = "serenidad_favorites";
 const CATEGORIES_KEY = "serenidad_categories";
 const AUDIO_CATS_KEY = "serenidad_audio_cats";
+const CACHED_LISTA_KEY = "serenidad_cached_lista";
 
 let audioList = [];
 let currentIndex = -1;
@@ -541,33 +542,51 @@ function setStatus(text, state) {
   document.getElementById('statusDot').className = 'dot ' + (state || '');
 }
 
+// Función principal: primero carga lista local, luego intenta actualizar
 async function loadList() {
   downloads = load(DOWNLOADS_KEY, {});
   favorites = load(FAVORITES_KEY, {});
   categories = load(CATEGORIES_KEY, []);
   audioCats = load(AUDIO_CATS_KEY, {});
-  setStatus('Cargando lista...', 'loading');
-  try {
-    const r = await fetch(getJsonUrl() + '?t=' + Date.now());
-    if (!r.ok) throw new Error('Error ' + r.status);
-    audioList = await r.json();
-    setStatus('Actualizado · ' + audioList.length + ' audio' + (audioList.length !== 1 ? 's' : ''), '');
+  
+  // Cargar lista guardada localmente primero
+  const listaGuardada = localStorage.getItem(CACHED_LISTA_KEY);
+  if (listaGuardada) {
+    audioList = JSON.parse(listaGuardada);
     renderTabs();
     renderList();
-  } catch(e) {
-    setStatus('Sin conexión — usando caché local', 'offline');
-    if (Object.keys(downloads).length > 0) {
-      audioList = Object.values(downloads).map(d => ({ titulo: d.titulo, url: d.url }));
+    setStatus('Lista local cargada', '');
+  } else {
+    setStatus('Sin lista local', 'offline');
+    document.getElementById('audioList').innerHTML = '<div class="empty"><div class="empty-icon">📭</div>No hay lista guardada.<br>Conectate a internet para descargar la lista.</div>';
+  }
+  
+  // Intentar actualizar desde internet (sin bloquear)
+  try {
+    const r = await fetch(getJsonUrl() + '?t=' + Date.now());
+    if (r.ok) {
+      const nuevaLista = await r.json();
+      // Guardar en localStorage
+      localStorage.setItem(CACHED_LISTA_KEY, JSON.stringify(nuevaLista));
+      audioList = nuevaLista;
       renderTabs();
       renderList();
-    } else {
-      document.getElementById('audioList').innerHTML = '<div class="empty"><div class="empty-icon">☁</div>No hay conexión y no hay audios descargados.</div>';
+      setStatus('Lista actualizada · ' + audioList.length + ' audios', '');
+    }
+  } catch(e) {
+    // Sin internet, ya tenemos la local cargada antes
+    if (listaGuardada) {
+      setStatus('Sin conexión · usando lista local', 'offline');
     }
   }
 }
 
 function renderTabs() {
   const wrap = document.getElementById('tabsWrap');
+  if (!audioList.length) {
+    wrap.style.display = 'none';
+    return;
+  }
   wrap.style.display = 'flex';
   const existing = wrap.querySelectorAll('.tab');
   existing.forEach(t => t.remove());
@@ -606,6 +625,7 @@ function switchTab(cat) {
 }
 
 function getFilteredList() {
+  if (!audioList.length) return [];
   if (currentTab === 'Todos') return audioList.map((a, i) => ({ ...a, origIndex: i }));
   if (currentTab === 'Favoritos') return audioList.map((a, i) => ({ ...a, origIndex: i })).filter(a => favorites[a.url]);
   return audioList.map((a, i) => ({ ...a, origIndex: i })).filter(a => audioCats[a.url] === currentTab);
@@ -613,14 +633,14 @@ function getFilteredList() {
 
 function renderList() {
   const container = document.getElementById('audioList');
-  document.getElementById('playAllRow').style.display = 'flex';
+  document.getElementById('playAllRow').style.display = audioList.length ? 'flex' : 'none';
   document.getElementById('clearAllRow').style.display = Object.keys(downloads).length > 0 ? 'block' : 'none';
 
   const list = getFilteredList();
 
   if (!list.length) {
     const msg = currentTab === 'Favoritos' ? 'No hay favoritos aún.<br>Tocá ❤ en un audio para agregarlo.' :
-                currentTab === 'Todos' ? 'No hay audios en la lista.' :
+                currentTab === 'Todos' ? !audioList.length ? 'No hay lista de audios. Conectate a internet.' : 'No hay audios en la lista.' :
                 'No hay audios en esta categoría.<br>Tocá 📂 en un audio para asignarlo.';
     container.innerHTML = '<div class="empty"><div class="empty-icon">🎵</div>' + msg + '</div>';
     return;
@@ -802,6 +822,7 @@ async function downloadAudio(i) {
     reader.onloadend = () => {
       downloads[a.url] = { titulo: a.titulo, url: a.url, base64: reader.result };
       save(DOWNLOADS_KEY, downloads);
+      if (btn) btn.innerHTML = '⬇';
       renderList();
     };
     reader.readAsDataURL(blob);
