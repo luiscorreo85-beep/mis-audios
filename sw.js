@@ -1,4 +1,4 @@
-const CACHE = 'serenidad-v1';
+const CACHE = 'serenidad-v2';
 const ASSETS = [
   '/mis-audios/player.html',
   'https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=DM+Sans:wght@300;400&display=swap'
