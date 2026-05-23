@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#0d1117">
+  <title>Serenidad</title>
+  <style>
+    :root { --bg:#0d1117; --surf:#161b22; --brd:#30363d; --txt:#e6edf3; --mut:#7d8590; --acc:#a8d8b9; --acc2:#6ab187; --dan:#f85149; }
+    * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
+    body { background:var(--bg); color:var(--txt); font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; font-size:15px; line-height:1.5; padding:16px; padding-bottom:130px; max-width:480px; margin:0 auto; }
+    header { text-align:center; margin-bottom:16px; }
+    h1 { font-family:Georgia,serif; font-size:28px; font-weight:400; }
+    h1 em { color:var(--acc); font-style:italic; }
+    .sub { color:var(--mut); font-size:13px; margin-top:4px; }
+
+    .actions { display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap; }
+    .btn { flex:1; min-width:90px; background:var(--surf); border:1px solid var(--brd); color:var(--txt); padding:10px 12px; border-radius:10px; font-size:13px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; transition:0.2s; }
+    .btn:hover { border-color:var(--acc); }
+    .btn:disabled { opacity:0.4; cursor:default; }
+    .btn.dan { border-color:rgba(248,81,73,0.3); color:var(--dan); }
+
+    .status { background:var(--surf); border:1px solid var(--brd); border-radius:10px; padding:8px 12px; margin-bottom:12px; font-size:12px; color:var(--mut); display:flex; justify-content:space-between; align-items:center; }
+
+    .tabs { display:flex; gap:6px; overflow-x:auto; margin-bottom:14px; padding-bottom:4px; scrollbar-width:none; }
+    .tabs::-webkit-scrollbar { display:none; }
+    .tab { background:var(--surf); border:1px solid var(--brd); color:var(--mut); padding:8px 12px; border-radius:20px; font-size:13px; white-space:nowrap; cursor:pointer; transition:0.2s; display:flex; align-items:center; }
+    .tab.act { background:var(--acc); border-color:var(--acc); color:var(--bg); font-weight:500; }
+    .tab.add { background:transparent; border-style:dashed; color:var(--acc); }
+    .tab-del { margin-left:6px; cursor:pointer; opacity:0.6; padding:0 4px; }
+    .tab-del:hover { opacity:1; }
+
+    .list { display:flex; flex-direction:column; gap:10px; }
+    .item { background:var(--surf); border:1px solid var(--brd); border-radius:12px; padding:12px; display:flex; align-items:center; gap:12px; }
+    .item .play { width:44px; height:44px; border-radius:50%; border:1px solid var(--brd); background:transparent; color:var(--mut); font-size:18px; cursor:pointer; flex-shrink:0; }
+    .item .play.act { background:var(--acc2); border-color:var(--acc2); color:var(--bg); }
+    .item .info { flex:1; min-width:0; }
+    .item .title { font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .item .meta { font-size:12px; color:var(--mut); margin-top:2px; display:flex; gap:6px; flex-wrap:wrap; }
+    .badge { padding:2px 7px; border-radius:10px; font-size:11px; border:1px solid; }
+    .badge.on { color:#e3b341; border-color:rgba(227,179,65,0.3); }
+    .badge.off { color:var(--acc); border-color:rgba(168,216,185,0.3); }
+    .badge.cat { color:var(--mut); border-color:var(--brd); }
+    .item .acts { display:flex; gap:6px; flex-shrink:0; }
+    .ibtn { width:36px; height:36px; border-radius:8px; border:1px solid var(--brd); background:transparent; color:var(--mut); cursor:pointer; font-size:16px; display:flex; align-items:center; justify-content:center; }
+    .ibtn.fav-on { color:#e3b341; border-color:rgba(227,179,65,0.3); }
+    .ibtn.dl-ok { color:var(--acc); border-color:rgba(168,216,185,0.3); }
+
+    .player { position:fixed; bottom:0; left:0; right:0; background:rgba(13,17,23,0.95); backdrop-filter:blur(12px); border-top:1px solid var(--brd); padding:12px 16px 28px; display:none; }
+    .player.show { display:block; }
+    .p-title { font-weight:500; margin-bottom:8px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .p-prog { height:4px; background:var(--brd); border-radius:2px; margin-bottom:12px; cursor:pointer; }
+    .p-fill { height:100%; background:var(--acc2); border-radius:2px; width:0%; transition:width 0.1s linear; }
+    .p-ctrl { display:flex; align-items:center; justify-content:space-between; }
+    .p-time { font-size:12px; color:var(--mut); min-width:45px; }
+    .p-time.r { text-align:right; }
+    .p-btn { background:none; border:none; color:var(--mut); font-size:22px; cursor:pointer; padding:8px; }
+    .p-main { width:56px; height:56px; border-radius:50%; background:var(--acc2); color:var(--bg); font-size:20px; border:none; cursor:pointer; }
+
+    .overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:200; align-items:center; justify-content:center; }
+    .overlay.show { display:flex; }
+    .modal { background:var(--surf); border:1px solid var(--brd); border-radius:14px; padding:20px; width:90%; max-width:320px; }
+    .modal h3 { font-family:Georgia,serif; font-size:20px; margin-bottom:12px; }
+    .modal input { width:100%; background:var(--bg); border:1px solid var(--brd); color:var(--txt); border-radius:8px; padding:10px; font-size:15px; outline:none; margin-bottom:10px; }
+    .modal .row { display:flex; gap:8px; }
+    .cat-list { display:flex; flex-direction:column; gap:6px; margin-bottom:10px; max-height:250px; overflow-y:auto; }
+    .cat-opt { background:var(--bg); border:1px solid var(--brd); border-radius:8px; padding:10px; text-align:left; cursor:pointer; color:var(--txt); }
+    .cat-opt:hover { border-color:var(--acc2); }
+    audio { display:none; }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Encuentra tu <em>calma</em></h1>
+  <p class="sub">Oraciones y meditaciones para aliviar la ansiedad.</p>
+</header>
+
+<div class="actions">
+  <button class="btn" onclick="syncList()">🔄 Actualizar lista</button>
+  <button class="btn dan" onclick="clearAll()">🗑 Borrar descargas</button>
+</div>
+
+<div class="status" id="statusBar">
+  <span id="statusText">Cargando...</span>
+  <span id="netStatus">—</span>
+</div>
+
+<div class="tabs" id="tabs"></div>
+<div class="list" id="audioList"></div>
+
+<div class="player" id="playerBar">
+  <div class="p-title" id="pTitle">—</div>
+  <div class="p-prog" onclick="seek(event)"><div class="p-fill" id="pFill"></div></div>
+  <div class="p-ctrl">
+    <span class="p-time" id="tCur">0:00</span>
+    <div style="display:flex;gap:10px;align-items:center">
+      <button class="p-btn" onclick="skip(-15)">⟪</button>
+      <button class="p-main" id="ppBtn" onclick="togglePlay()">▶</button>
+      <button class="p-btn" onclick="skip(15)">⟫</button>
+    </div>
+    <span class="p-time r" id="tDur">0:00</span>
+  </div>
+</div>
+
+<div class="overlay" id="newCatModal">
+  <div class="modal">
+    <h3>Nueva categoría</h3>
+    <input type="text" id="newCatInput" placeholder="Ej: Mañana, Insomnio..." />
+    <div class="row">
+      <button class="btn" onclick="confirmCat()" style="flex:2">Crear</button>
+      <button class="btn" onclick="closeModal('newCatModal')" style="flex:1">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="assignModal">
+  <div class="modal">
+    <h3 id="assignTitle">Asignar categoría</h3>
+    <div class="cat-list" id="catList"></div>
+    <button class="btn" onclick="closeModal('assignModal')">Cerrar</button>
+  </div>
+</div>
+
+<audio id="audio" preload="none"></audio>
+
+<script>
+const DB_NAME = 'serenidad_db';
+const LIST_KEY = 'serenidad_list';
+const FAV_KEY = 'serenidad_fav';
+const CATS_KEY = 'serenidad_cats';
+const AUDIO_CATS_KEY = 'serenidad_audio_cats';
+const JSON_URL = 'https://raw.githubusercontent.com/luiscorreo85-beep/mis-audios/main/lista.json';
+
+let db, lista = [], currentObjUrl = null, currentIdx = -1, isPlaying = false;
+let favorites = {}, categories = [], audioCats = {}, activeTab = 'todos';
+const audio = document.getElementById('audio');
+
+function openDB() { return new Promise((res,rej)=>{ const r=indexedDB.open(DB_NAME,1); r.onupgradeneeded=e=>e.target.result.createObjectStore('audios',{keyPath:'url'}); r.onsuccess=e=>{db=e.target.result;res()}; r.onerror=rej; }); }
+function putAudio(url,blob,title){ return new Promise((res,rej)=>{ const tx=db.transaction('audios','readwrite'); tx.objectStore('audios').put({url,blob,title,ts:Date.now()}); tx.oncomplete=res; tx.onerror=rej; }); }
+function getAudio(url){ return new Promise(res=>{ const tx=db.transaction('audios','readonly'); const r=tx.objectStore('audios').get(url); r.onsuccess=()=>res(r.result?.blob||null); r.onerror=()=>res(null); }); }
+function hasAudio(url){ return new Promise(res=>{ const tx=db.transaction('audios','readonly'); const r=tx.objectStore('audios').get(url); r.onsuccess=()=>res(!!r.result); r.onerror=()=>res(false); }); }
+function clearAllDB(){ return new Promise((res,rej)=>{ const tx=db.transaction('audios','readwrite'); tx.objectStore('audios').clear(); tx.oncomplete=res; tx.onerror=rej; }); }
+
+function loadPrefs(){ try{favorites=JSON.parse(localStorage.getItem(FAV_KEY))||{}}catch(e){} try{categories=JSON.parse(localStorage.getItem(CATS_KEY))||[]}catch(e){} try{audioCats=JSON.parse(localStorage.getItem(AUDIO_CATS_KEY))||{}}catch(e){} }
+function savePrefs(){ localStorage.setItem(FAV_KEY,JSON.stringify(favorites)); localStorage.setItem(CATS_KEY,JSON.stringify(categories)); localStorage.setItem(AUDIO_CATS_KEY,JSON.stringify(audioCats)); }
+
+async function init(){ await openDB(); loadPrefs(); const cached=localStorage.getItem(LIST_KEY); if(cached){lista=JSON.parse(cached);render()} checkNet(); }
+
+async function syncList(){
+  setStatus('Conectando...');
+  try{
+    const r=await fetch(JSON_URL+'?t='+Date.now()); if(!r.ok) throw new Error('HTTP '+r.status);
+    lista=await r.json(); localStorage.setItem(LIST_KEY,JSON.stringify(lista)); render(); setStatus('Lista actualizada · '+lista.length+' audios');
+  }catch(e){ if(!lista.length) setStatus('Error: sin internet ni caché',true); else setStatus('Usando lista guardada',true); }
+}
+
+function render(){ renderTabs(); renderList(); }
+
+function renderTabs(){
+  const wrap=document.getElementById('tabs');
+  const tabs=[{id:'todos',label:'Todos'},{id:'fav',label:'❤ Favoritos'},...categories.map(c=>({id:c,label:c,del:true}))];
+  wrap.innerHTML=tabs.map(t=>{
+    const delBtn=t.del?`<span class="tab-del" onclick="event.stopPropagation();deleteCat('${esc(t.id)}')">✕</span>`:'';
+    return `<div class="tab ${t.id===activeTab?'act':''}" onclick="switchTab('${esc(t.id)}')">${t.label}${delBtn}</div>`;
+  }).join('')+`<div class="tab add" onclick="openModal('newCatModal')">+ Categoría</div>`;
+}
+
+function switchTab(id){ activeTab=id; renderTabs(); renderList(); }
+
+function getFiltered(){
+  if(!lista.length) return [];
+  const mapped=lista.map((a,i)=>({...a,idx:i}));
+  if(activeTab==='todos') return mapped;
+  if(activeTab==='fav') return mapped.filter(a=>favorites[a.url]);
+  return mapped.filter(a=>audioCats[a.url]===activeTab);
+}
+
+function renderList(){
+  const c=document.getElementById('audioList');
+  const list=getFiltered();
+  if(!list.length){ c.innerHTML=`<div style="text-align:center;color:var(--mut);padding:40px">${activeTab==='fav'?'Toca ❤ para agregar favoritos.':'Sin audios aquí.'}</div>`; return; }
+  c.innerHTML=list.map(a=>`
+    <div class="item">
+      <button class="play" id="play-${a.idx}" onclick="play(${a.idx})">▶</button>
+      <div class="info">
+        <div class="title">${esc(a.titulo)}</div>
+        <div class="meta" id="meta-${a.idx}">...</div>
+      </div>
+      <div class="acts">
+        <button class="ibtn ${favorites[a.url]?'fav-on':''}" onclick="toggleFav(${a.idx})">❤</button>
+        <button class="ibtn" onclick="openAssign(${a.idx})">📂</button>
+        <button class="ibtn" id="dl-${a.idx}" onclick="dl(${a.idx})">⬇</button>
+      </div>
+    </div>
+  `).join('');
+  list.forEach(a=>updateStatus(a.idx));
+}
+
+async function updateStatus(i){
+  const meta=document.getElementById(`meta-${i}`); const btn=document.getElementById(`dl-${i}`);
+  if(!meta||!btn) return;
+  const has=await hasAudio(lista[i].url); const cat=audioCats[lista[i].url];
+  meta.innerHTML=(has?'<span class="badge off">✓</span>':'<span class="badge on">●</span>')+(cat?`<span class="badge cat">${esc(cat)}</span>`:'');
+  btn.className='ibtn'+(has?' dl-ok':''); btn.innerHTML=has?'✓':'⬇'; btn.onclick=has?null:()=>dl(i);
+}
+
+async function dl(i){
+  const btn=document.getElementById(`dl-${i}`); btn.innerHTML='⏳'; btn.disabled=true;
+  try{ const r=await fetch(lista[i].url); if(!r.ok) throw new Error('HTTP '+r.status); const blob=await r.blob(); await putAudio(lista[i].url,blob,lista[i].titulo); updateStatus(i); }
+  catch(e){ btn.innerHTML='✕'; setTimeout(()=>updateStatus(i),1000); }
+}
+
+function toggleFav(i){
+  const url=lista[i].url; favorites[url]=!favorites[url]?true:undefined; if(!favorites[url]) delete favorites[url]; savePrefs(); renderList();
+}
+
+function openModal(id){ document.getElementById(id).classList.add('show'); if(id==='newCatModal') setTimeout(()=>document.getElementById('newCatInput').focus(),100); }
+function closeModal(id){ document.getElementById(id).classList.remove('show'); }
+function confirmCat(){ const inp=document.getElementById('newCatInput'); const val=inp.value.trim(); if(!val) return; if(!categories.includes(val)) categories.push(val); savePrefs(); closeModal('newCatModal'); inp.value=''; renderTabs(); switchTab(val); }
+
+function deleteCat(name){
+  if(!confirm(`¿Eliminar "${name}"? Se quitará la etiqueta de los audios.`)) return;
+  categories=categories.filter(c=>c!==name);
+  for(let url in audioCats) if(audioCats[url]===name) delete audioCats[url];
+  savePrefs(); if(activeTab===name) switchTab('todos'); else render();
+}
+
+let assignIdx=-1;
+function openAssign(i){
+  assignIdx=i; document.getElementById('assignTitle').textContent=lista[i].titulo;
+  const list=document.getElementById('catList'); const cur=audioCats[lista[i].url];
+  list.innerHTML=cur?`<div class="cat-opt" style="color:var(--dan);border-color:rgba(248,81,73,0.3)" onclick="setCat('')">✕ Quitar categoría</div>`:'';
+  list.innerHTML+=categories.map(c=>`<div class="cat-opt" onclick="setCat('${esc(c)}')">${esc(c)}</div>`).join('');
+  openModal('assignModal');
+}
+function setCat(cat){
+  if(!cat) delete audioCats[lista[assignIdx].url]; else audioCats[lista[assignIdx].url]=cat;
+  savePrefs(); closeModal('assignModal'); renderList();
+}
+
+function play(i){
+  const a=lista[i]; if(currentIdx===i&&!audio.paused){togglePlay();return;}
+  if(currentObjUrl) URL.revokeObjectURL(currentObjUrl);
+  currentIdx=i; isPlaying=true; document.getElementById('pTitle').textContent=a.titulo; document.getElementById('playerBar').classList.add('show'); updatePlayUI(i);
+  getAudio(a.url).then(blob=>{ const src=blob?URL.createObjectURL(blob):a.url; currentObjUrl=src; audio.src=src; audio.play().catch(()=>setStatus('Error al reproducir',true)); });
+}
+function togglePlay(){ if(audio.paused){audio.play();isPlaying=true;}else{audio.pause();isPlaying=false;} document.getElementById('ppBtn').textContent=isPlaying?'⏸':'▶'; if(currentIdx>=0)updatePlayUI(currentIdx); }
+function updatePlayUI(i){ document.querySelectorAll('.play').forEach((b,idx)=>{ b.textContent=(idx===i&&isPlaying)?'⏸':'▶'; b.className='play'+(idx===i?' act':''); }); }
+function skip(s){ audio.currentTime=Math.max(0,Math.min(audio.duration||9999,audio.currentTime+s)); }
+function seek(e){ if(!audio.duration)return; const r=e.target.getBoundingClientRect(); audio.currentTime=((e.clientX-r.left)/r.width)*audio.duration; }
+audio.addEventListener('timeupdate',()=>{ if(!audio.duration)return; document.getElementById('pFill').style.width=(audio.currentTime/audio.duration*100)+'%'; document.getElementById('tCur').textContent=fmt(audio.currentTime); document.getElementById('tDur').textContent=fmt(audio.duration); });
+audio.addEventListener('ended',()=>{ isPlaying=false; document.getElementById('ppBtn').textContent='▶'; if(currentIdx>=0)updatePlayUI(currentIdx); });
+
+async function clearAll(){ if(!confirm('¿Borrar audios descargados?')) return; await clearAllDB(); lista.forEach((_,i)=>updateStatus(i)); }
+
+function checkNet(){ document.getElementById('netStatus').textContent=navigator.onLine?'🟢 En línea':'🔴 Offline'; window.addEventListener('online',()=>document.getElementById('netStatus').textContent='🟢 En línea'); window.addEventListener('offline',()=>document.getElementById('netStatus').textContent='🔴 Offline'); }
+function setStatus(txt,err=false){ const el=document.getElementById('statusText'); el.textContent=txt; el.style.color=err?'var(--dan)':'var(--txt)'; }
+function fmt(s){ if(isNaN(s))return '0:00'; return Math.floor(s/60)+':'+Math.floor(s%60).toString().padStart(2,'0'); }
+function esc(s){ return s.replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+
+init();
+</script>
+</body>
+</html>
