@@ -1,7 +1,7 @@
 [
   {
     "titulo": "Calmar la ansiedad",
-    "url": "https://raw.githubusercontent.com/luiscorreo85-beep/mis-audios/main/Oracion_ansiedad.mp3"
+    "url": "https://raw.githubusercontent.com/luiscorreo85-beep/mis-audios/main/Oracion_calmar_ansiedad.mp3"
   },
   {
     "titulo": "Cuando siento pánico",
@@ -194,5 +194,29 @@
   {
     "titulo": "Despierto sobresaltado",
     "url": "https://raw.githubusercontent.com/luiscorreo85-beep/mis-audios/main/Oracion_despierto_sobresaltado.mp3"
+  },
+  {
+    "titulo": "Perdón y sanidad",
+    "url": "https://raw.githubusercontent.com/luiscorreo85-beep/mis-audios/main/Oracion_perdon_sanidad.mp3"
+  },
+  {
+    "titulo": "Fortalecer la fe",
+    "url": "https://raw.githubusercontent.com/luiscorreo85-beep/mis-audios/main/Oracion_fortalecer_fe.mp3"
+  },
+  {
+    "titulo": "Aceptar lo que no puedo cambiar",
+    "url": "https://raw.githubusercontent.com/luiscorreo85-beep/mis-audios/main/Oracion_aceptar_lo_que_no_puedo.mp3"
+  },
+  {
+    "titulo": "Paciencia en la espera",
+    "url": "https://raw.githubusercontent.com/luiscorreo85-beep/mis-audios/main/Oracion_paciencia_espera.mp3"
+  },
+  {
+    "titulo": "Protección para mi hogar",
+    "url": "https://raw.githubusercontent.com/luiscorreo85-beep/mis-audios/main/Oracion_proteccion_hogar.mp3"
+  },
+  {
+    "titulo": "Sanidad emocional",
+    "url": "https://raw.githubusercontent.com/luiscorreo85-beep/mis-audios/main/Oracion_sanidad_emocional.mp3"
   }
 ]
