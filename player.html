@@ -334,6 +334,24 @@
   }
   .empty-icon { font-size: 36px; margin-bottom: 12px; opacity: 0.3; }
 
+  .play-all-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .btn-mode {
+    flex: 1;
+    padding: 12px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    font-size: 15px;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .btn-mode:hover { background: var(--surface2); }
+  .btn-mode.active { border-color: var(--accent2); color: var(--accent); }
   .clear-all {
     text-align: right;
     margin-bottom: 12px;
@@ -381,6 +399,10 @@
   </div>
 
   <div class="section-label" id="listLabel" style="display:none">Biblioteca</div>
+  <div class="play-all-row" id="playAllRow" style="display:none">
+    <button class="btn-mode" onclick="playAll()">▶▶ En orden</button>
+    <button class="btn-mode" onclick="playShuffle()">🔀 Aleatorio</button>
+  </div>
   <div class="clear-all" id="clearAllRow" style="display:none">
     <button onclick="clearAllDownloads()">🗑 borrar todos los descargados</button>
   </div>
@@ -408,7 +430,25 @@ const DEFAULT_JSON = "https://raw.githubusercontent.com/luiscorreo85-beep/mis-au
 const STORAGE_KEY = "serenidad_json_url";
 const DOWNLOADS_KEY = "serenidad_downloads";
 
-let audioList = [];
+let playMode = null; // 'all' | 'shuffle' | null
+let shuffleQueue = [];
+
+function playAll() {
+  playMode = 'all';
+  document.querySelectorAll('.btn-mode').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.btn-mode')[0].classList.add('active');
+  playAudio(0);
+}
+
+function playShuffle() {
+  playMode = 'shuffle';
+  document.querySelectorAll('.btn-mode').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.btn-mode')[1].classList.add('active');
+  shuffleQueue = [...Array(audioList.length).keys()].sort(() => Math.random() - 0.5);
+  playAudio(shuffleQueue.shift());
+}
+
+
 let currentIndex = -1;
 let isPlaying = false;
 let downloads = {};
@@ -473,6 +513,7 @@ async function loadList() {
 function renderList() {
   const container = document.getElementById('audioList');
   document.getElementById('listLabel').style.display = 'block';
+  document.getElementById('playAllRow').style.display = 'flex';
 
   const hasDownloads = Object.keys(downloads).length > 0;
   document.getElementById('clearAllRow').style.display = hasDownloads ? 'block' : 'none';
@@ -574,6 +615,14 @@ player.addEventListener('ended', () => {
   if (currentIndex >= 0) {
     const card = document.getElementById('card-' + currentIndex);
     if (card) card.querySelector('.play-icon').innerHTML = '▶';
+  }
+  if (playMode === 'all') {
+    const next = currentIndex + 1;
+    if (next < audioList.length) playAudio(next);
+    else playMode = null;
+  } else if (playMode === 'shuffle') {
+    if (shuffleQueue.length > 0) playAudio(shuffleQueue.shift());
+    else playMode = null;
   }
 });
 
