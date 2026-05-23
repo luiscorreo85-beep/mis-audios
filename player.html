@@ -820,6 +820,8 @@ function clearAllDownloads() {
 }
 
 loadList();
-</script>
-</body>
-</html>
+
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/mis-audios/sw.js');
+}
+
