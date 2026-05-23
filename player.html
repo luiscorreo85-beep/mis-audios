@@ -668,7 +668,8 @@ function openAssignModal(i) {
   if (!allCats.length) {
     list.innerHTML = '<div style="color:var(--muted);font-size:14px;">No hay categorías.<br>Creá una con el botón + arriba.</div>';
   } else {
-    list.innerHTML = allCats.map(cat =>
+    const sinCat = audioCats[a.url] ? `<button class="cat-option" style="color:var(--danger);border-color:rgba(248,81,73,0.2)" onclick="assignCat('')">✕ Sin categoría</button>` : '';
+    list.innerHTML = sinCat + allCats.map(cat =>
       `<button class="cat-option" onclick="assignCat('${cat}')">${cat}</button>`
     ).join('');
   }
@@ -677,7 +678,8 @@ function openAssignModal(i) {
 
 function assignCat(cat) {
   const a = audioList[assigningIndex];
-  audioCats[a.url] = cat;
+  if (cat === '') delete audioCats[a.url];
+  else audioCats[a.url] = cat;
   save(AUDIO_CATS_KEY, audioCats);
   closeAssignModal();
   renderList();
