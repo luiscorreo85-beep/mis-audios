@@ -7,6 +7,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="manifest.json">
 <title>Serenidad</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=DM+Sans:wght@300;400&display=swap" rel="stylesheet">
@@ -566,7 +567,6 @@ async function loadList() {
     const r = await fetch(getJsonUrl() + '?t=' + Date.now());
     if (r.ok) {
       const nuevaLista = await r.json();
-      // Guardar en localStorage
       localStorage.setItem(CACHED_LISTA_KEY, JSON.stringify(nuevaLista));
       audioList = nuevaLista;
       renderTabs();
@@ -574,7 +574,6 @@ async function loadList() {
       setStatus('Lista actualizada · ' + audioList.length + ' audios', '');
     }
   } catch(e) {
-    // Sin internet, ya tenemos la local cargada antes
     if (listaGuardada) {
       setStatus('Sin conexión · usando lista local', 'offline');
     }
@@ -655,10 +654,10 @@ function renderList() {
     return `<div class="audio-card ${isActive ? 'active' : ''}" id="card-${i}" onclick="playAudio(${i})">
       <div class="play-icon">${isActive && isPlaying ? '⏸' : '▶'}</div>
       <div class="audio-info">
-        <div class="audio-title">${a.titulo}</div>
+        <div class="audio-title">${escapeHtml(a.titulo)}</div>
         <div class="audio-meta">
           ${dl ? '<span class="badge downloaded">descargado</span>' : '<span class="badge online">online</span>'}
-          ${cat ? '<span class="badge cat">' + cat + '</span>' : ''}
+          ${cat ? '<span class="badge cat">' + escapeHtml(cat) + '</span>' : ''}
         </div>
       </div>
       <div class="card-actions" onclick="event.stopPropagation()">
@@ -669,6 +668,16 @@ function renderList() {
       </div>
     </div>`;
   }).join('');
+}
+
+function escapeHtml(str) {
+  if (!str) return '';
+  return str.replace(/[&<>]/g, function(m) {
+    if (m === '&') return '&amp;';
+    if (m === '<') return '&lt;';
+    if (m === '>') return '&gt;';
+    return m;
+  });
 }
 
 function toggleFav(i) {
@@ -690,7 +699,7 @@ function openAssignModal(i) {
   } else {
     const sinCat = audioCats[a.url] ? `<button class="cat-option" style="color:var(--danger);border-color:rgba(248,81,73,0.2)" onclick="assignCat('')">✕ Sin categoría</button>` : '';
     list.innerHTML = sinCat + allCats.map(cat =>
-      `<button class="cat-option" onclick="assignCat('${cat}')">${cat}</button>`
+      `<button class="cat-option" onclick="assignCat('${cat.replace(/'/g, "\\'")}')">${escapeHtml(cat)}</button>`
     ).join('');
   }
   document.getElementById('assignCatModal').classList.add('open');
@@ -840,6 +849,15 @@ function clearAllDownloads() {
   downloads = {};
   save(DOWNLOADS_KEY, downloads);
   renderList();
+}
+
+// Registrar Service Worker
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').then(reg => {
+    console.log('Service Worker registrado', reg);
+  }).catch(err => {
+    console.log('Error al registrar SW:', err);
+  });
 }
 
 loadList();
