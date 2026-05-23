@@ -451,7 +451,7 @@ async function loadList() {
   setStatus('Cargando lista...', 'loading');
   const url = getJsonUrl();
   try {
-    const r = await fetch(url + '&t=' + Date.now());
+    const r = await fetch(url + '?t=' + Date.now());
     if (!r.ok) throw new Error('Error ' + r.status);
     audioList = await r.json();
     setStatus('Actualizado · ' + audioList.length + ' audio' + (audioList.length !== 1 ? 's' : ''), '');
